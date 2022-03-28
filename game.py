@@ -15,6 +15,7 @@ class Game:
         self.bg_color = self.settings.bg_color
         pg.display.set_caption('Mario')
         self.level = Level(self.settings.level_map, self.screen)
+        self.clock = pg.time.Clock()
 
 
     def restart(self): pass
@@ -23,7 +24,7 @@ class Game:
 
     def draw(self):
         self.screen.fill(self.bg_color)
-
+        self.level.draw()
 
     def play(self):
         self.finished = False
@@ -33,7 +34,8 @@ class Game:
                     pg.quit()
                     sys.exit()
             self.draw()
-
+            pg.display.update()
+            self.clock.tick(60)
 def main():
     g = Game()
     g.play()

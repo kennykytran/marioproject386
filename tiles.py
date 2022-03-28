@@ -5,7 +5,8 @@ class Tile(Sprite):
     def __init__(self, pos, size):
         super().__init__()
         self.image = pg.Surface((size, size))
-        self.image.fill((255, 0 ,0))
+        self.image.fill('grey')
         self.rect = self.image.get_rect(topleft = pos)
 
-    def draw(self): pass
+    def update(self, x_shift):
+        self.rect.x += x_shift
