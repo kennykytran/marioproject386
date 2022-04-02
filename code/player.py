@@ -15,7 +15,7 @@ class Player(pygame.sprite.Sprite):
 		self.direction = pygame.math.Vector2(0,0)
 		self.speed = 8
 		self.gravity = 0.8
-		self.jump_speed = -24
+		self.jump_speed = -22
 
 		# player status
 		self.status = 'idle'
@@ -25,8 +25,25 @@ class Player(pygame.sprite.Sprite):
 		self.on_left = False
 		self.on_right = False
 
+		# player power up states. from 0 to 2, normal, super, flower
+		self.states = 0
+
+		self.invulnerable_timer = pygame.time.get_ticks()
+		# lives count
+		self.lives = 3
+
+	def get_invul_timer(self):
+		return self.invulnerable_timer
+
+	def change_invul_timer(self, time):
+		self.invulnerable_timer = time
+
+	def hit(self):
+		self.invulnerable = True
+		self.lives -= 1
+
 	def import_character_assets(self):
-		character_path = '../graphics/character/'
+		character_path = '../graphics/character/normal/'
 		self.animations = {'idle':[],'run':[],'jump':[],'fall':[]}
 
 		for animation in self.animations.keys():
@@ -74,7 +91,7 @@ class Player(pygame.sprite.Sprite):
 		else:
 			self.direction.x = 0
 
-		if keys[pygame.K_SPACE] and self.on_ground:
+		if (keys[pygame.K_SPACE] or keys[pygame.K_w] or keys[pygame.K_UP]) and self.on_ground:
 			self.jump()
 
 	def get_status(self):
@@ -83,10 +100,11 @@ class Player(pygame.sprite.Sprite):
 		elif self.direction.y > 1:
 			self.status = 'fall'
 		else:
-			if self.direction.x != 0:
+			if not self.on_ground:
+				self.status = 'fall'
+			elif self.direction.x != 0:
 				self.status = 'run'
-			else:
-				self.status = 'idle'
+			else: self.status = 'idle'
 
 	def apply_gravity(self):
 		self.direction.y += self.gravity
@@ -94,6 +112,24 @@ class Player(pygame.sprite.Sprite):
 
 	def jump(self):
 		self.direction.y = self.jump_speed
+
+	def change_to_super(self):
+		if self.states == 0:
+			self.states += 1
+			character_path = '../graphics/character/super/'
+			for animation in self.animations.keys():
+				full_path = character_path + animation
+				self.animations[animation] = import_folder(full_path)
+
+	def change_to_fire(self):
+		if self.states != 2:
+			self.states = 2
+			character_path = '../graphics/character/flower/'
+			for animation in self.animations.keys():
+				full_path = character_path + animation
+				self.animations[animation] = import_folder(full_path)
+
+
 
 	def update(self):
 		self.get_input()

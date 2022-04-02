@@ -1,12 +1,12 @@
-import pygame 
+import pygame, sys
 from support import import_csv_layout, import_cut_graphics
 from settings import tile_size, screen_height, screen_width
-from tiles import Tile, StaticTile, Crate, Coin, Palm
+from tiles import Tile, StaticTile, Crate, Coin, Palm, Mushroom, Flower
 from enemy import Enemy
 from decoration import Sky, Water, Clouds
 from player import Player
 from particles import ParticleEffect
-
+from fire import Fireball
 
 class Level:
 	def __init__(self,level_data,surface):
@@ -24,6 +24,9 @@ class Level:
 		# dust 
 		self.dust_sprite = pygame.sprite.GroupSingle()
 		self.player_on_ground = False
+
+		# fireball
+		self.fireball_sprite = pygame.sprite.GroupSingle()
 
 		# terrain setup
 		terrain_layout = import_csv_layout(level_data['terrain'])
@@ -45,13 +48,21 @@ class Level:
 		# fg_palm_layout = import_csv_layout(level_data['fg palms'])
 		# self.fg_palm_sprites = self.create_tile_group(fg_palm_layout,'fg palms')
 
+		# mushroom
+		mushroom_layout = import_csv_layout(level_data['mushroom'])
+		self.mushroom_sprites = self.create_tile_group(mushroom_layout, 'mushroom')
+
+		# flower
+		flower_layout = import_csv_layout(level_data['flower'])
+		self.flower_sprites = self.create_tile_group(flower_layout, 'flower')
+
 		# background palms 
 		bg_palm_layout = import_csv_layout(level_data['bg palms'])
 		self.bg_palm_sprites = self.create_tile_group(bg_palm_layout,'bg palms')
 
 		# enemy 
 		enemy_layout = import_csv_layout(level_data['enemies'])
-		self.enemy_sprites = self.create_tile_group(enemy_layout,'enemies')
+		self.enemy_sprites = self.create_tile_group(enemy_layout, 'enemies')
 
 		# constraint 
 		constraint_layout = import_csv_layout(level_data['constraints'])
@@ -101,6 +112,13 @@ class Level:
 
 					if type == 'constraint':
 						sprite = Tile(tile_size,x,y)
+
+					if type == 'mushroom':
+						sprite = Mushroom(tile_size,x,y)
+
+					if type == 'flower':
+						sprite = Flower(tile_size,x,y)
+
 
 					sprite_group.add(sprite)
 		
@@ -204,6 +222,53 @@ class Level:
 			fall_dust_particle = ParticleEffect(self.player.sprite.rect.midbottom - offset,'land')
 			self.dust_sprite.add(fall_dust_particle)
 
+	def check_mushroom_collision(self):
+		player = self.player.sprite
+		mushroom_collisions = pygame.sprite.spritecollide(self.player.sprite, self.mushroom_sprites, False)
+
+		if mushroom_collisions:
+			player.change_to_super()
+			for mushroom in mushroom_collisions:
+				mushroom.kill()
+
+	def check_flower_collision(self):
+		player = self.player.sprite
+		flower_collisions = pygame.sprite.spritecollide(self.player.sprite, self.flower_sprites, False)
+
+		if flower_collisions:
+			player.change_to_fire()
+			for flower in flower_collisions:
+				flower.kill()
+
+	def check_goomba_collision(self):
+		player = self.player.sprite
+		goomba_collisions = pygame.sprite.spritecollide(player, self.enemy_sprites, False)
+		now = pygame.time.get_ticks()
+
+		if goomba_collisions:
+			for goomba in goomba_collisions:
+				goomba_center = goomba.rect.centery
+				goomba_top = goomba.rect.top
+				player_bottom = self.player.sprite.rect.bottom
+				if goomba_top < player_bottom < goomba_center and self.player.sprite.direction.y >= 0:
+					player.direction.y = -16
+					goomba.kill()
+				elif now - player.invulnerable_timer >= 1000:
+					player.change_invul_timer(now)
+					player.hit()
+
+		if not player.lives:
+			pygame.quit()
+			sys.exit()
+
+	def check_coin_collision(self):
+		player = self.player.sprite
+		coin_collisions = pygame.sprite.spritecollide(self.player.sprite,self.coin_sprites, False)
+
+		if coin_collisions:
+			for coin in coin_collisions:
+				coin.kill()
+
 	def run(self):
 		# run the entire game / level 
 		
@@ -237,6 +302,14 @@ class Level:
 		self.coin_sprites.update(self.world_shift)
 		self.coin_sprites.draw(self.display_surface)
 
+		# mushroom
+		self.mushroom_sprites.update(self.world_shift)
+		self.mushroom_sprites.draw(self.display_surface)
+
+		# flower
+		self.flower_sprites.update(self.world_shift)
+		self.flower_sprites.draw(self.display_surface)
+
 		# foreground palms
 		# self.fg_palm_sprites.update(self.world_shift)
 		# self.fg_palm_sprites.draw(self.display_surface)
@@ -252,11 +325,16 @@ class Level:
 		self.get_player_on_ground()
 		self.vertical_movement_collision()
 		self.create_landing_dust()
-		
+
+		self.check_mushroom_collision()
+		self.check_flower_collision()
+		self.check_coin_collision()
+
 		self.scroll_x()
 		self.player.draw(self.display_surface)
 		self.goal.update(self.world_shift)
 		self.goal.draw(self.display_surface)
 
+		self.check_goomba_collision()
 		# water 
-		self.water.draw(self.display_surface,self.world_shift)
+		# self.water.draw(self.display_surface,self.world_shift)
