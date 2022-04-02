@@ -7,6 +7,7 @@ from decoration import Sky, Water, Clouds
 from player import Player
 from particles import ParticleEffect
 
+
 class Level:
 	def __init__(self,level_data,surface):
 		# general setup
@@ -41,8 +42,8 @@ class Level:
 		self.coin_sprites = self.create_tile_group(coin_layout,'coins')
 
 		# foreground palms 
-		fg_palm_layout = import_csv_layout(level_data['fg palms'])
-		self.fg_palm_sprites = self.create_tile_group(fg_palm_layout,'fg palms')
+		# fg_palm_layout = import_csv_layout(level_data['fg palms'])
+		# self.fg_palm_sprites = self.create_tile_group(fg_palm_layout,'fg palms')
 
 		# background palms 
 		bg_palm_layout = import_csv_layout(level_data['bg palms'])
@@ -134,7 +135,8 @@ class Level:
 	def horizontal_movement_collision(self):
 		player = self.player.sprite
 		player.rect.x += player.direction.x * player.speed
-		collidable_sprites = self.terrain_sprites.sprites() + self.crate_sprites.sprites() + self.fg_palm_sprites.sprites()
+		# collidable_sprites = self.terrain_sprites.sprites() + self.crate_sprites.sprites() + self.fg_palm_sprites.sprites()
+		collidable_sprites = self.terrain_sprites.sprites()
 		for sprite in collidable_sprites:
 			if sprite.rect.colliderect(player.rect):
 				if player.direction.x < 0: 
@@ -154,8 +156,8 @@ class Level:
 	def vertical_movement_collision(self):
 		player = self.player.sprite
 		player.apply_gravity()
-		collidable_sprites = self.terrain_sprites.sprites() + self.crate_sprites.sprites() + self.fg_palm_sprites.sprites()
-
+		# collidable_sprites = self.terrain_sprites.sprites() + self.crate_sprites.sprites() + self.fg_palm_sprites.sprites()
+		collidable_sprites = self.terrain_sprites.sprites()
 		for sprite in collidable_sprites:
 			if sprite.rect.colliderect(player.rect):
 				if player.direction.y > 0: 
@@ -211,7 +213,7 @@ class Level:
 		
 		# background palms
 		self.bg_palm_sprites.update(self.world_shift)
-		self.bg_palm_sprites.draw(self.display_surface) 
+		self.bg_palm_sprites.draw(self.display_surface)
 
 		# terrain 
 		self.terrain_sprites.update(self.world_shift)
@@ -236,8 +238,8 @@ class Level:
 		self.coin_sprites.draw(self.display_surface)
 
 		# foreground palms
-		self.fg_palm_sprites.update(self.world_shift)
-		self.fg_palm_sprites.draw(self.display_surface)
+		# self.fg_palm_sprites.update(self.world_shift)
+		# self.fg_palm_sprites.draw(self.display_surface)
 
 		# dust particles 
 		self.dust_sprite.update(self.world_shift)

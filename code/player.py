@@ -15,7 +15,7 @@ class Player(pygame.sprite.Sprite):
 		self.direction = pygame.math.Vector2(0,0)
 		self.speed = 8
 		self.gravity = 0.8
-		self.jump_speed = -16
+		self.jump_speed = -24
 
 		# player status
 		self.status = 'idle'
@@ -65,10 +65,10 @@ class Player(pygame.sprite.Sprite):
 	def get_input(self):
 		keys = pygame.key.get_pressed()
 
-		if keys[pygame.K_RIGHT]:
+		if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
 			self.direction.x = 1
 			self.facing_right = True
-		elif keys[pygame.K_LEFT]:
+		elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
 			self.direction.x = -1
 			self.facing_right = False
 		else:
