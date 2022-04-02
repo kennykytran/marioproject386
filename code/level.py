@@ -6,8 +6,7 @@ from enemy import Enemy
 from decoration import Sky, Water, Clouds
 from player import Player
 from particles import ParticleEffect
-from fire import Fireball
-
+from score import Score
 class Level:
 	def __init__(self,level_data,surface):
 		# general setup
@@ -251,13 +250,27 @@ class Level:
 				goomba_top = goomba.rect.top
 				player_bottom = self.player.sprite.rect.bottom
 				if goomba_top < player_bottom < goomba_center and self.player.sprite.direction.y >= 0:
+					if not player.states == 'normal':
+						goomba.kill()
 					player.direction.y = -16
-					goomba.kill()
-				elif now - player.invulnerable_timer >= 1000:
+				elif now - player.invulnerable_timer > 1000:
 					player.change_invul_timer(now)
-					player.hit()
+					if not player.states == 'normal':
+						if player.states == 'fire':
+							player.change_to_super()
+						elif player.states == 'super':
+							player.change_to_normal()
+					else: player.hit()
 
 		if not player.lives:
+			pygame.quit()
+			sys.exit()
+
+	def check_goal_collisions(self):
+		goal_collisions = pygame.sprite.spritecollide(self.player.sprite, self.goal.sprite, False)
+
+		if goal_collisions:
+			print("YOU WON!")
 			pygame.quit()
 			sys.exit()
 
@@ -309,6 +322,8 @@ class Level:
 		# flower
 		self.flower_sprites.update(self.world_shift)
 		self.flower_sprites.draw(self.display_surface)
+
+
 
 		# foreground palms
 		# self.fg_palm_sprites.update(self.world_shift)

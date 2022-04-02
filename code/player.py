@@ -26,7 +26,7 @@ class Player(pygame.sprite.Sprite):
 		self.on_right = False
 
 		# player power up states. from 0 to 2, normal, super, flower
-		self.states = 0
+		self.states = 'normal'
 
 		self.invulnerable_timer = pygame.time.get_ticks()
 		# lives count
@@ -39,8 +39,8 @@ class Player(pygame.sprite.Sprite):
 		self.invulnerable_timer = time
 
 	def hit(self):
-		self.invulnerable = True
 		self.lives -= 1
+		print(f'lives left', self.lives)
 
 	def import_character_assets(self):
 		character_path = '../graphics/character/normal/'
@@ -114,22 +114,28 @@ class Player(pygame.sprite.Sprite):
 		self.direction.y = self.jump_speed
 
 	def change_to_super(self):
-		if self.states == 0:
-			self.states += 1
+		if not self.states == 'super':
+			self.states = 'super'
 			character_path = '../graphics/character/super/'
 			for animation in self.animations.keys():
 				full_path = character_path + animation
 				self.animations[animation] = import_folder(full_path)
 
 	def change_to_fire(self):
-		if self.states != 2:
-			self.states = 2
+		if not self.states == 'fire':
+			self.states = 'fire'
 			character_path = '../graphics/character/flower/'
 			for animation in self.animations.keys():
 				full_path = character_path + animation
 				self.animations[animation] = import_folder(full_path)
 
-
+	def change_to_normal(self):
+		if not self.states == 'normal':
+			self.states = 'normal'
+			character_path = '../graphics/character/normal/'
+			for animation in self.animations.keys():
+				full_path = character_path + animation
+				self.animations[animation] = import_folder(full_path)
 
 	def update(self):
 		self.get_input()
