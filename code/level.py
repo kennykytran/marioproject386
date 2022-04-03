@@ -6,13 +6,15 @@ from enemy import Enemy
 from decoration import Sky, Water, Clouds
 from player import Player
 from particles import ParticleEffect
-from score import Score
+from sound import Sound
+# from score import Score
 class Level:
 	def __init__(self,level_data,surface):
 		# general setup
 		self.display_surface = surface
 		self.world_shift = 0
 		self.current_x = None
+		self.sound = Sound()
 
 		# player 
 		player_layout = import_csv_layout(level_data['player'])
@@ -250,8 +252,8 @@ class Level:
 				goomba_top = goomba.rect.top
 				player_bottom = self.player.sprite.rect.bottom
 				if goomba_top < player_bottom < goomba_center and self.player.sprite.direction.y >= 0:
-					if not player.states == 'normal':
-						goomba.kill()
+					self.sound.play_stomp()
+					goomba.kill()
 					player.direction.y = -16
 				elif now - player.invulnerable_timer > 1000:
 					player.change_invul_timer(now)
@@ -263,6 +265,7 @@ class Level:
 					else: player.hit()
 
 		if not player.lives:
+			self.sound.play_game_over()
 			pygame.quit()
 			sys.exit()
 
@@ -280,6 +283,7 @@ class Level:
 
 		if coin_collisions:
 			for coin in coin_collisions:
+				self.sound.play_coin()
 				coin.kill()
 
 	def run(self):

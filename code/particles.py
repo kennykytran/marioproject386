@@ -14,12 +14,9 @@ class ParticleEffect(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(center = pos)
 
 	def animate(self):
-		self.frame_index += self.animation_speed
-		if self.frame_index >= len(self.frames):
-			self.kill()
-		else:
-			self.image = self.frames[int(self.frame_index)]
+		return
+
 
 	def update(self,x_shift):
-		self.animate()
-		self.rect.x += x_shift
+		return
+

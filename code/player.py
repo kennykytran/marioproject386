@@ -1,5 +1,7 @@
 import pygame 
 from support import import_folder
+from sound import *
+
 
 class Player(pygame.sprite.Sprite):
 	def __init__(self,pos,surface,create_jump_particles):
@@ -9,6 +11,7 @@ class Player(pygame.sprite.Sprite):
 		self.animation_speed = 0.15
 		self.image = pygame.transform.rotozoom(self.animations['idle'][self.frame_index], 0, 4)
 		self.rect = self.image.get_rect(topleft = pos)
+		self.sound = Sound()
 
 
 		# player movement
@@ -111,10 +114,15 @@ class Player(pygame.sprite.Sprite):
 		self.rect.y += self.direction.y
 
 	def jump(self):
+		self.sound.play_jump()
 		self.direction.y = self.jump_speed
 
 	def change_to_super(self):
 		if not self.states == 'super':
+			if self.states == 'fire':
+				self.sound.play_pipe()
+			else:
+				self.sound.play_power_up()
 			self.states = 'super'
 			character_path = '../graphics/character/super/'
 			for animation in self.animations.keys():
@@ -125,6 +133,7 @@ class Player(pygame.sprite.Sprite):
 		if not self.states == 'fire':
 			self.states = 'fire'
 			character_path = '../graphics/character/flower/'
+			self.sound.play_power_up()
 			for animation in self.animations.keys():
 				full_path = character_path + animation
 				self.animations[animation] = import_folder(full_path)
@@ -133,6 +142,7 @@ class Player(pygame.sprite.Sprite):
 		if not self.states == 'normal':
 			self.states = 'normal'
 			character_path = '../graphics/character/normal/'
+			self.sound.play_pipe()
 			for animation in self.animations.keys():
 				full_path = character_path + animation
 				self.animations[animation] = import_folder(full_path)

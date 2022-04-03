@@ -1,13 +1,17 @@
 import pygame, sys
-from settings import * 
+
+from settings import *
 from level import Level
 from game_data import level_0
+from sound import *
 
 # Pygame setup
+sound = Sound()
 pygame.init()
 screen = pygame.display.set_mode((screen_width,screen_height))
 clock = pygame.time.Clock()
 level = Level(level_0,screen)
+sound.play_bg()
 
 while True:
 	for event in pygame.event.get():
