@@ -317,10 +317,9 @@ class Level:
 				goomba_top = goomba.rect.top
 				player_bottom = self.player.sprite.rect.bottom
 				if goomba_top < player_bottom < goomba_center and self.player.sprite.direction.y >= 0:
-					if not player.states == 'normal':
-						self.score.add_score(100)
-						self.sound.play_stomp()
-						goomba.kill()
+					self.score.add_score(100)
+					self.sound.play_stomp()
+					goomba.kill()
 					player.direction.y = -16
 				elif now - player.invulnerable_timer > 1000:
 					self.live_count.add_score(-1)
