@@ -6,8 +6,10 @@ from enemy import Enemy
 from decoration import Sky, Water, Clouds
 from player import Player
 from particles import ParticleEffect
+from score import Score, Coin_count, Live_count
+from settings import *
 from sound import Sound
-# from score import Score
+
 class Level:
 	def __init__(self,level_data,surface):
 		# general setup
@@ -22,7 +24,31 @@ class Level:
 		self.goal = pygame.sprite.GroupSingle()
 		self.player_setup(player_layout)
 
-		# dust 
+		# score text
+		self.score_text = pygame.font.SysFont(None, 48).render('SCORE', True, (60,60,60))
+		self.score_text_rect = surface.get_rect()
+		self.score_text.set_alpha(127)
+
+		# score
+		self.score = Score(self.display_surface)
+
+		# coin count text
+		self.coin_count_text = pygame.font.SysFont(None, 48).render('COIN COUNT', True, (60, 60, 60))
+		self.coin_count_text_rect = surface.get_rect()
+		self.coin_count_text.set_alpha(127)
+
+		# coin count
+		self.coin_count = Coin_count(self.display_surface)
+
+		# live count
+		self.live_count_text = pygame.font.SysFont(None, 48).render('LIVES', True, (60, 60, 60))
+		self.live_count_text_rect = surface.get_rect()
+		self.live_count_text.set_alpha(127)
+
+		# live
+		self.live_count = Live_count(self.display_surface)
+
+		# dust
 		self.dust_sprite = pygame.sprite.GroupSingle()
 		self.player_on_ground = False
 
@@ -33,7 +59,15 @@ class Level:
 		terrain_layout = import_csv_layout(level_data['terrain'])
 		self.terrain_sprites = self.create_tile_group(terrain_layout,'terrain')
 
-		# grass setup 
+		#  goal
+		goal_layout = import_csv_layout(level_data['goal'])
+		self.goal_sprites = self.create_tile_group(goal_layout, 'goal')
+
+		# death barrier
+		death_barrier_layout = import_csv_layout(level_data['death_barrier'])
+		self.death_barrier_sprites = self.create_tile_group(death_barrier_layout, 'death_barrier')
+
+		# grass setup
 		grass_layout = import_csv_layout(level_data['grass'])
 		self.grass_sprites = self.create_tile_group(grass_layout,'grass')
 
@@ -112,6 +146,12 @@ class Level:
 						sprite = Enemy(tile_size,x,y)
 
 					if type == 'constraint':
+						sprite = Tile(tile_size,x,y)
+
+					if type == 'death_barrier':
+						sprite = Tile(tile_size,x,y)
+
+					if type == 'goal':
 						sprite = Tile(tile_size,x,y)
 
 					if type == 'mushroom':
@@ -241,6 +281,31 @@ class Level:
 			for flower in flower_collisions:
 				flower.kill()
 
+	def check_goal_collision(self):
+		player = self.player.sprite
+		goal_collisions = pygame.sprite.spritecollide(self.player.sprite, self.goal_sprites, False)
+		if goal_collisions:
+			print("YOU WON!")
+			pygame.quit()
+			sys.exit()
+
+	def check_death_barrier(self):
+		player = self.player.sprite
+		death_barrier_collision = pygame.sprite.spritecollide(player, self.death_barrier_sprites, False)
+		now = pygame.time.get_ticks()
+		if death_barrier_collision:
+			player.direction.y = -30
+			if now - player.invulnerable_timer > 1000:
+				self.live_count.add_score(-1)
+				player.change_invul_timer(now)
+				if not player.states == 'normal':
+					if player.states == 'fire':
+						player.change_to_super()
+					elif player.states == 'super':
+						player.change_to_normal()
+				else:
+					player.hit()
+
 	def check_goomba_collision(self):
 		player = self.player.sprite
 		goomba_collisions = pygame.sprite.spritecollide(player, self.enemy_sprites, False)
@@ -252,30 +317,34 @@ class Level:
 				goomba_top = goomba.rect.top
 				player_bottom = self.player.sprite.rect.bottom
 				if goomba_top < player_bottom < goomba_center and self.player.sprite.direction.y >= 0:
-					self.sound.play_stomp()
-					goomba.kill()
+					if not player.states == 'normal':
+						self.score.add_score(100)
+						self.sound.play_stomp()
+						goomba.kill()
 					player.direction.y = -16
 				elif now - player.invulnerable_timer > 1000:
+					self.live_count.add_score(-1)
 					player.change_invul_timer(now)
 					if not player.states == 'normal':
 						if player.states == 'fire':
 							player.change_to_super()
 						elif player.states == 'super':
 							player.change_to_normal()
-					else: player.hit()
+					else:
+						player.hit()
 
 		if not player.lives:
 			self.sound.play_game_over()
 			pygame.quit()
 			sys.exit()
 
-	def check_goal_collisions(self):
-		goal_collisions = pygame.sprite.spritecollide(self.player.sprite, self.goal.sprite, False)
-
-		if goal_collisions:
-			print("YOU WON!")
-			pygame.quit()
-			sys.exit()
+	# def check_goal_collisions(self):
+	# 	goal_collisions = pygame.sprite.spritecollide(self.player.sprite, self.goal.sprite, False)
+	#
+	# 	if goal_collisions:
+	# 		print("YOU WON!")
+	# 		pygame.quit()
+	# 		sys.exit()
 
 	def check_coin_collision(self):
 		player = self.player.sprite
@@ -283,6 +352,8 @@ class Level:
 
 		if coin_collisions:
 			for coin in coin_collisions:
+				self.score.add_score(10)
+				self.coin_count.add_score(1)
 				self.sound.play_coin()
 				coin.kill()
 
@@ -292,7 +363,25 @@ class Level:
 		# sky 
 		self.sky.draw(self.display_surface)
 		self.clouds.draw(self.display_surface,self.world_shift)
-		
+
+		# score
+		self.score.draw()
+
+		# score text
+		self.display_surface.blit(self.score_text, (self.score_text_rect.centerx - 50, 32))
+
+		# coin count
+		self.coin_count.draw()
+
+		# coin count text
+		self.display_surface.blit(self.coin_count_text, (screen_width - 300, 32))
+
+		# live count
+		self.live_count.draw()
+
+		# live count text
+		self.display_surface.blit(self.live_count_text, (160, 32))
+
 		# background palms
 		self.bg_palm_sprites.update(self.world_shift)
 		self.bg_palm_sprites.draw(self.display_surface)
@@ -327,7 +416,11 @@ class Level:
 		self.flower_sprites.update(self.world_shift)
 		self.flower_sprites.draw(self.display_surface)
 
+		# goal
+		self.goal_sprites.update(self.world_shift)
 
+		# death_barrier
+		self.death_barrier_sprites.update(self.world_shift)
 
 		# foreground palms
 		# self.fg_palm_sprites.update(self.world_shift)
@@ -348,6 +441,8 @@ class Level:
 		self.check_mushroom_collision()
 		self.check_flower_collision()
 		self.check_coin_collision()
+		self.check_goal_collision()
+		self.check_death_barrier()
 
 		self.scroll_x()
 		self.player.draw(self.display_surface)

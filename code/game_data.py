@@ -9,4 +9,6 @@ level_0 = {
 		'player':'../levels/0/level_0_player.csv',
 		'grass':'../levels/0/level_0_grass.csv',
 		'mushroom':'../levels/0/level_0_mushroom.csv',
-		'flower':'../levels/0/level_0_flower.csv'}
+		'flower':'../levels/0/level_0_flower.csv',
+		'goal':'../levels/0/level_0_goal.csv',
+		'death_barrier':'../levels/0/level_0_death_barrier.csv'}
