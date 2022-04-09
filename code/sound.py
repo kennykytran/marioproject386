@@ -4,7 +4,7 @@ import pygame
 class Sound:
     def __init__(self):
         pygame.mixer.init()
-        self.coin = pygame.mixer.Sound('../sounds/smb_coin.wav')
+        self.coin = pygame.mixer.Sound('../sounds/smb_coin_new.wav')
         self.death = pygame.mixer.Sound('../sounds/smb_mariodie.wav')
         self.jump = pygame.mixer.Sound('../sounds/smb_jump-small.wav')
         self.end_theme = pygame.mixer.Sound('../sounds/smb_gameover.wav')
